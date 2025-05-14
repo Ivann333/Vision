@@ -12,6 +12,5 @@ import { DatabaseService } from './database.service';
     }),
   ],
   providers: [DatabaseService],
-  // exports: [MongooseModule],
 })
 export class DatabaseModule {}

@@ -1,0 +1,76 @@
+import {
+  Injectable,
+  BadRequestException,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { LoginDto, SignupDto } from './dto';
+import { User, UserModelType } from '../user/user.schema';
+import { InjectModel } from '@nestjs/mongoose';
+import { MongoError } from 'mongodb';
+import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
+import { JwtPayload } from './interfaces/jwt-payload.interface';
+
+@Injectable()
+export class AuthService {
+  constructor(
+    @InjectModel(User.name) private userModel: UserModelType,
+    private jwt: JwtService,
+    private config: ConfigService,
+  ) {}
+
+  async signup(signupDto: SignupDto) {
+    try {
+      const user = await this.userModel.create(signupDto);
+      const { username, createdAt, email } = user;
+      const access_token = await this.signToken(user.id, user.email);
+
+      return {
+        message: 'You have successfully signup',
+        data: { access_token, user: { username, email, createdAt } },
+      };
+    } catch (error: unknown) {
+      if (error instanceof MongoError && error.code === 11000) {
+        throw new BadRequestException('Email or username already exists');
+      } else {
+        // unknown error
+        throw error;
+      }
+    }
+  }
+
+  async login(loginDto: LoginDto) {
+    const user = await this.userModel
+      .findOne({ email: loginDto.email })
+      .select('+password');
+
+    const isValid =
+      user &&
+      (await this.userModel.validatePassword(loginDto.password, user.password));
+
+    if (!isValid) {
+      throw new UnauthorizedException('Invalid email or password');
+    }
+
+    const access_token = await this.signToken(user.id, user.email);
+    return {
+      message: 'You have successfully login',
+      data: {
+        access_token,
+        user: {
+          username: user.username,
+          email: user.email,
+        },
+      },
+    };
+  }
+
+  signToken(userId: number, email: string): Promise<string> {
+    const payload: JwtPayload = { sub: userId, email };
+
+    const expiresIn: string | undefined = this.config.get('JWT_EXPIRES_IN');
+    const secret: string | undefined = this.config.get('JWT_SECRET');
+
+    return this.jwt.signAsync(payload, { expiresIn, secret });
+  }
+}
