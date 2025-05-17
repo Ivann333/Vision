@@ -11,6 +11,6 @@ export class SignupDto {
   @MinLength(8)
   password: string;
 
-  @MinLength(8)
-  confirmPassword: string;
+  // @MinLength(8)
+  // confirmPassword: string;
 }
