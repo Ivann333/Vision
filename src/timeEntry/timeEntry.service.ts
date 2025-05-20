@@ -32,7 +32,11 @@ export class TimeEntryService {
       taskId: task._id,
     });
 
-    return { message: 'Time entry successfully created', data: { newEntry } };
+    return {
+      success: true,
+      message: 'Time entry successfully created',
+      data: { timeEntry: newEntry },
+    };
   }
 
   stopEntry() {}

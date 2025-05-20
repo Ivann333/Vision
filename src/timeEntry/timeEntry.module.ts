@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { TimeEntryService } from './timeEntry.service';
 import { TimeEntryController } from './timeEntry.controller';
 import { MongooseModule } from '@nestjs/mongoose';
-import TimeEntrySchema, { TimeEntry } from './timeEntry.schema';
+import { TimeEntry, TimeEntrySchema } from './timeEntry.schema';
 import { Task, TaskSchema } from 'src/task/task.schema';
 
 @Module({

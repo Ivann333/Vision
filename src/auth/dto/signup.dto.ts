@@ -8,9 +8,7 @@ export class SignupDto {
   @IsEmail()
   email: string;
 
+  @IsString()
   @MinLength(8)
   password: string;
-
-  // @MinLength(8)
-  // confirmPassword: string;
 }

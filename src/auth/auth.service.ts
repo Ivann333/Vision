@@ -1,12 +1,7 @@
-import {
-  Injectable,
-  BadRequestException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { LoginDto, SignupDto } from './dto';
 import { User, UserModelType } from '../user/user.schema';
 import { InjectModel } from '@nestjs/mongoose';
-import { MongoError } from 'mongodb';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
@@ -20,23 +15,15 @@ export class AuthService {
   ) {}
 
   async signup(signupDto: SignupDto) {
-    try {
-      const user = await this.userModel.create(signupDto);
-      const { username, createdAt, email } = user;
-      const access_token = await this.signToken(user.id, user.email);
+    const user = await this.userModel.create(signupDto);
+    const { username, createdAt, email } = user;
+    const access_token = await this.signToken(user.id, user.email);
 
-      return {
-        message: 'You have successfully signup',
-        data: { access_token, user: { username, email, createdAt } },
-      };
-    } catch (error: unknown) {
-      if (error instanceof MongoError && error.code === 11000) {
-        throw new BadRequestException('Email or username already exists');
-      } else {
-        // unknown error
-        throw error;
-      }
-    }
+    return {
+      success: true,
+      message: 'You have successfully signup',
+      data: { access_token, user: { username, email, createdAt } },
+    };
   }
 
   async login(loginDto: LoginDto) {
@@ -54,6 +41,7 @@ export class AuthService {
 
     const access_token = await this.signToken(user.id, user.email);
     return {
+      success: true,
       message: 'You have successfully login',
       data: {
         access_token,

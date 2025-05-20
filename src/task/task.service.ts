@@ -12,6 +12,10 @@ export class TaskService {
       userId: user._id,
       ...taskDto,
     });
-    return { message: 'Task successfully created', data: { task: newTask } };
+    return {
+      success: true,
+      message: 'Task successfully created',
+      data: { task: newTask },
+    };
   }
 }
