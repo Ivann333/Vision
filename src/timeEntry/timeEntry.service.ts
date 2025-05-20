@@ -14,6 +14,7 @@ export class TimeEntryService {
 
   async startEntry(user: User, timeEntryDto: TimeEntryDto) {
     const activeEntry = await this.timeEntryModel.findOne({
+      userId: user._id,
       isActive: true,
     });
 
@@ -39,5 +40,23 @@ export class TimeEntryService {
     };
   }
 
-  stopEntry() {}
+  async stopEntry(user: User) {
+    const activeEntry = await this.timeEntryModel.findOne({
+      userId: user._id,
+      isActive: true,
+    });
+
+    if (!activeEntry)
+      throw new BadRequestException('You dont have an active time entry');
+
+    activeEntry.isActive = false;
+    activeEntry.endTime = new Date();
+    await activeEntry.save();
+
+    return {
+      success: true,
+      message: 'Time entry successfully saved',
+      data: { timeEntry: activeEntry },
+    };
+  }
 }

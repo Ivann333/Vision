@@ -17,5 +17,7 @@ export class TimeEntryController {
 
   @UseGuards(JwtGuard)
   @Post('stop')
-  stopEntry() {}
+  stopEntry(@GetUser() user: User) {
+    return this.timeEntryService.stopEntry(user);
+  }
 }

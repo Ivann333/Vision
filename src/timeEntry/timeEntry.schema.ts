@@ -22,6 +22,9 @@ export class TimeEntry {
   startTime: Date;
 
   @Prop({ required: false, default: null })
+  duration: number;
+
+  @Prop({ required: false, default: null })
   endTime: Date;
 
   @Prop({ required: false, default: Date.now })
@@ -30,4 +33,15 @@ export class TimeEntry {
 
 const TimeEntrySchema = SchemaFactory.createForClass(TimeEntry);
 
-export default TimeEntrySchema;
+TimeEntrySchema.pre<TimeEntryDocument>('save', function (next) {
+  if (this.endTime === null) return next();
+
+  const duration: number = Math.floor(
+    (this.endTime.getTime() - this.startTime.getTime()) / 1000,
+  );
+
+  this.duration = duration;
+  next();
+});
+
+export { TimeEntrySchema };
