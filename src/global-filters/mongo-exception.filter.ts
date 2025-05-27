@@ -25,7 +25,8 @@ export class MongoExceptionFilter implements ExceptionFilter {
     if (exception instanceof MongoServerError) {
       if (exception.code === 11000) {
         status = HttpStatus.BAD_REQUEST;
-        message = `${Object.keys(exception.keyValue).join(' ')} already exists`;
+        const fields = Object.keys(exception.keyValue);
+        message = `${fields.join(' ')} already exists`;
       }
     }
     if (exception instanceof Error.ValidationError) {
