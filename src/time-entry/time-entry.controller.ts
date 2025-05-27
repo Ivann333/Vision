@@ -1,6 +1,6 @@
 import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import { JwtGuard } from 'src/auth/guard';
-import { TimeEntryService } from './timeEntry.service';
+import { TimeEntryService } from './time-entry.service';
 import { GetUser } from 'src/auth/decorator';
 import { User } from 'src/user/user.schema';
 import { TimeEntryDto } from './dto';
