@@ -1,5 +1,4 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
-import { TaskDto } from './dto';
+import { CreateTaskDto } from './dto';
 import { JwtGuard } from 'src/auth/guard';
 import { GetUser } from 'src/auth/decorator';
 import { User } from 'src/user/user.schema';
@@ -11,7 +10,8 @@ export class TaskController {
 
   @UseGuards(JwtGuard)
   @Post()
-  create(@GetUser() user: User, @Body() taskDto: TaskDto) {
-    return this.taskSevice.create(user, taskDto);
+  create(@GetUser() user: User, @Body() createTaskDto: CreateTaskDto) {
+    return this.taskSevice.create(user, createTaskDto);
+  }
   }
 }
