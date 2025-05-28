@@ -22,6 +22,7 @@ export class TaskController {
     return this.taskSevice.create(user, createTaskDto);
   }
 
+  @UseGuards(JwtGuard)
   @Patch(':id')
   update(
     @GetUser() user: User,
