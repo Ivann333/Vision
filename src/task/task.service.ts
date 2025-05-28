@@ -31,6 +31,35 @@ export class TaskService {
     };
   }
 
+  async update(user: User, id: string, updateTaskDto: UpdateTaskDto) {
+    const task = await this.taskModel.findById(id);
+
+    if (!task) throw new NotFoundException('Task not found');
+
+    if (updateTaskDto.startDate) {
+      const startDate = new Date(updateTaskDto.startDate);
+      const type = updateTaskDto.type || task.type;
+
+      this.ensureValidStartDate(startDate, type);
+      await this.ensureMaxTasksLimit(startDate, type);
+    }
+
+    const updatedTask = await this.taskModel.findByIdAndUpdate(
+      id,
+      { ...updateTaskDto },
+      {
+        new: true,
+        runValidators: true,
+      },
+    );
+
+    return {
+      success: true,
+      message: 'Task successfully updated',
+      data: { task: updatedTask },
+    };
+  }
+
   async ensureMaxTasksLimit(startDate: Date, type: TaskType) {
     const endDate = this.taskModel.calculateEndDate(startDate, type);
 

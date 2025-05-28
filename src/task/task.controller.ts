@@ -1,4 +1,12 @@
-import { CreateTaskDto } from './dto';
+import {
+  Body,
+  Controller,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
+import { CreateTaskDto, UpdateTaskDto } from './dto';
 import { JwtGuard } from 'src/auth/guard';
 import { GetUser } from 'src/auth/decorator';
 import { User } from 'src/user/user.schema';
@@ -13,5 +21,13 @@ export class TaskController {
   create(@GetUser() user: User, @Body() createTaskDto: CreateTaskDto) {
     return this.taskSevice.create(user, createTaskDto);
   }
+
+  @Patch(':id')
+  update(
+    @GetUser() user: User,
+    @Param('id') id: string,
+    @Body() updateTaskDto: UpdateTaskDto,
+  ) {
+    return this.taskSevice.update(user, id, updateTaskDto);
   }
 }
