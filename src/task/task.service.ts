@@ -35,6 +35,10 @@ export class TaskService {
     const task = await this.taskModel.findById(id);
 
     if (!task) throw new NotFoundException('Task not found');
+    if (task.userId !== user._id.toString())
+      throw new UnauthorizedException(
+        'You do not have permission to access this resource',
+      );
 
     if (updateTaskDto.startDate) {
       const startDate = new Date(updateTaskDto.startDate);
