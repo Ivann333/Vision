@@ -9,6 +9,8 @@ import { Task, TaskModelType } from './task.schema';
 import { User } from 'src/user/user.schema';
 import { CreateTaskDto, UpdateTaskDto } from './dto';
 import { TaskType } from './enums/task-type.enum';
+import { applyPagination } from 'src/common/helpers/pagination.helper';
+import { FindAllQueryDto } from 'src/common/dto';
 
 @Injectable()
 export class TaskService {
@@ -62,6 +64,20 @@ export class TaskService {
       success: true,
       message: 'Task successfully updated',
       data: { task: updatedTask },
+    };
+  }
+
+  async findAll(user: User, query: FindAllQueryDto) {
+    let tasksQuery = this.taskModel.find({ userId: user._id });
+    tasksQuery = applyPagination(tasksQuery, query);
+
+    const tasks = await tasksQuery;
+
+    return {
+      success: true,
+      message: 'Tasks successfully retrieved',
+      results: tasks.length,
+      data: { tasks },
     };
   }
 
