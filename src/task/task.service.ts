@@ -13,6 +13,7 @@ import { TaskType } from './enums/task-type.enum';
 import { applyPagination } from 'src/common/helpers/pagination.helper';
 import { FindAllTasksQueryDto } from './dto/find-all-tasks-query.dto';
 import { applySort } from 'src/common/helpers/sort.helper';
+import { applySelectFields } from 'src/common/helpers/select-fields.helper';
 
 @Injectable()
 export class TaskService {
@@ -79,6 +80,17 @@ export class TaskService {
       'createdAt',
       'estimation',
       'type',
+    ]);
+    tasksQuery = applySelectFields(tasksQuery, query, [
+      'userId',
+      'name',
+      'description',
+      'type',
+      'startDate',
+      'endDate',
+      'estimation',
+      'isCompleted',
+      'createdAt',
     ]);
 
     const tasks = await tasksQuery;
