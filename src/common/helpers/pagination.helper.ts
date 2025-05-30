@@ -1,4 +1,4 @@
-import { PaginationQueryDto } from '../dto/paginationQuery.dto';
+import { PaginationQueryDto } from '../dto/pagination-query.dto';
 import { Query } from 'mongoose';
 
 export function applyPagination<T>(

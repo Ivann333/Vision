@@ -10,7 +10,7 @@ import { User } from 'src/user/user.schema';
 import { CreateTaskDto, UpdateTaskDto } from './dto';
 import { TaskType } from './enums/task-type.enum';
 import { applyPagination } from 'src/common/helpers/pagination.helper';
-import { FindAllQueryDto } from 'src/common/dto';
+import { FindAllTasksQueryDto } from './dto/find-all-tasks-query.dto';
 
 @Injectable()
 export class TaskService {
@@ -67,7 +67,7 @@ export class TaskService {
     };
   }
 
-  async findAll(user: User, query: FindAllQueryDto) {
+  async findAll(user: User, query: FindAllTasksQueryDto) {
     let tasksQuery = this.taskModel.find({ userId: user._id });
     tasksQuery = applyPagination(tasksQuery, query);
 
