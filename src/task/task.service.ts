@@ -74,24 +74,16 @@ export class TaskService {
     let tasksQuery = this.taskModel.find({ userId: user._id });
 
     tasksQuery = applyPagination(tasksQuery, query);
-    tasksQuery = applySort(tasksQuery, query, [
-      'startDate',
-      'endDate',
-      'createdAt',
-      'estimation',
-      'type',
-    ]);
-    tasksQuery = applySelectFields(tasksQuery, query, [
-      'userId',
-      'name',
-      'description',
-      'type',
-      'startDate',
-      'endDate',
-      'estimation',
-      'isCompleted',
-      'createdAt',
-    ]);
+    tasksQuery = applySort(
+      tasksQuery,
+      query,
+      Object.keys(this.taskModel.schema.paths),
+    );
+    tasksQuery = applySelectFields(
+      tasksQuery,
+      query,
+      Object.keys(this.taskModel.schema.paths),
+    );
 
     const tasks = await tasksQuery;
 
