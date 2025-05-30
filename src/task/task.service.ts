@@ -11,6 +11,7 @@ import { CreateTaskDto, UpdateTaskDto } from './dto';
 import { TaskType } from './enums/task-type.enum';
 import { applyPagination } from 'src/common/helpers/pagination.helper';
 import { FindAllTasksQueryDto } from './dto/find-all-tasks-query.dto';
+import { applySort } from 'src/common/helpers/sort.helper';
 
 @Injectable()
 export class TaskService {
@@ -69,7 +70,15 @@ export class TaskService {
 
   async findAll(user: User, query: FindAllTasksQueryDto) {
     let tasksQuery = this.taskModel.find({ userId: user._id });
+
     tasksQuery = applyPagination(tasksQuery, query);
+    tasksQuery = applySort(tasksQuery, query, [
+      'startDate',
+      'endDate',
+      'createdAt',
+      'estimation',
+      'type',
+    ]);
 
     const tasks = await tasksQuery;
 
