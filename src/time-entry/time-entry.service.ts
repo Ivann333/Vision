@@ -2,7 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { TimeEntry, TimeEntryModelType } from './time-entry.schema';
 import { User } from 'src/user/user.schema';
-import { TimeEntryDto } from './dto';
+import { TimeEntryDto } from './dto/time-entry.dto';
 import { Task, TaskModelType } from 'src/task/task.schema';
 
 @Injectable()

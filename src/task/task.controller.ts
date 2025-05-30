@@ -8,9 +8,10 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { CreateTaskDto, UpdateTaskDto } from './dto';
+import { CreateTaskDto } from './dto/create-task.dto';
+import { UpdateTaskDto } from './dto/update-task.dto';
 import { JwtGuard } from 'src/auth/guard';
-import { GetUser } from 'src/auth/decorator';
+import { GetUser } from 'src/auth/decorator/get-user.decorator';
 import { User } from 'src/user/user.schema';
 import { TaskService } from './task.service';
 import { FindAllTasksQueryDto } from './dto/find-all-tasks-query.dto';

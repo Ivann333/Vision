@@ -1,5 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { LoginDto, SignupDto } from './dto';
+import { LoginDto } from './dto/login.dto';
+import { SignupDto } from './dto/signup.dto';
 import { User, UserModelType } from '../user/user.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { JwtService } from '@nestjs/jwt';

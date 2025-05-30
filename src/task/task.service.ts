@@ -7,7 +7,8 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Task, TaskModelType } from './task.schema';
 import { User } from 'src/user/user.schema';
-import { CreateTaskDto, UpdateTaskDto } from './dto';
+import { CreateTaskDto } from './dto/create-task.dto';
+import { UpdateTaskDto } from './dto/update-task.dto';
 import { TaskType } from './enums/task-type.enum';
 import { applyPagination } from 'src/common/helpers/pagination.helper';
 import { FindAllTasksQueryDto } from './dto/find-all-tasks-query.dto';
