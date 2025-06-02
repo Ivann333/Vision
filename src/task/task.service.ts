@@ -10,10 +10,11 @@ import { User } from 'src/user/user.schema';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { TaskType } from './enums/task-type.enum';
-import { applyPagination } from 'src/common/helpers/pagination.helper';
+import { applyPagination } from 'src/common/helpers/apply-pagination.helper';
 import { FindAllTasksQueryDto } from './dto/find-all-tasks-query.dto';
-import { applySort } from 'src/common/helpers/sort.helper';
-import { applySelectFields } from 'src/common/helpers/select-fields.helper';
+import { applySort } from 'src/common/helpers/apply-sort.helper';
+import { applySelectFields } from 'src/common/helpers/apply-select-fields.helper';
+import { applyQueryFilter } from 'src/common/helpers/apply-query-filter.helper';
 
 @Injectable()
 export class TaskService {
@@ -84,6 +85,8 @@ export class TaskService {
       query,
       Object.keys(this.taskModel.schema.paths),
     );
+
+    tasksQuery = applyQueryFilter(tasksQuery, query);
 
     const tasks = await tasksQuery;
 
