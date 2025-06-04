@@ -1,14 +1,14 @@
 import { Query } from 'mongoose';
 import { BadRequestException } from '@nestjs/common';
-import { SelectFieldsQueryDto } from '../dto/select-fields-query.dto';
+import { BaseFindAllQueryDto } from '../dto/base-find-all-query.dto';
 
 export function applySelectFields<T>(
   query: Query<T[], T>,
-  selectQueryDto: SelectFieldsQueryDto,
+  queryDto: BaseFindAllQueryDto,
   allowedFields: string[],
 ) {
-  if (!selectQueryDto.fields) return query;
-  const selectFields = selectQueryDto.fields.split(',');
+  if (!queryDto.fields) return query;
+  const selectFields = queryDto.fields.split(',');
 
   //validation
   for (const field of selectFields) {

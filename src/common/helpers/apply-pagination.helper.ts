@@ -1,12 +1,12 @@
-import { PaginationQueryDto } from '../dto/pagination-query.dto';
 import { Query } from 'mongoose';
+import { BaseFindAllQueryDto } from '../dto/base-find-all-query.dto';
 
 export function applyPagination<T>(
   query: Query<T[], T>,
-  paginationDto: PaginationQueryDto,
+  queryDto: BaseFindAllQueryDto,
 ) {
-  const page = paginationDto.page || 1;
-  const limit = paginationDto.limit || 10;
+  const page = queryDto.page || 1;
+  const limit = queryDto.limit || 10;
   const skip = (page - 1) * limit;
   return query.skip(skip).limit(limit);
 }

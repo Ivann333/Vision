@@ -1,7 +1,7 @@
+import { IsOptional, Min, IsString, IsNumber } from 'class-validator';
 import { Type } from 'class-transformer';
-import { IsOptional, IsNumber, Min } from 'class-validator';
 
-export class PaginationQueryDto {
+export class BaseFindAllQueryDto {
   @IsOptional()
   @Type(() => Number)
   @Min(1)
@@ -13,4 +13,12 @@ export class PaginationQueryDto {
   @Min(1)
   @IsNumber()
   limit?: number;
+
+  @IsOptional()
+  @IsString()
+  fields?: string;
+
+  @IsOptional()
+  @IsString()
+  sort?: string;
 }

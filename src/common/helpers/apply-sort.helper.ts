@@ -1,14 +1,14 @@
 import { Query } from 'mongoose';
-import { SortQueryDto } from '../dto/sort-query.dto';
 import { BadRequestException } from '@nestjs/common';
+import { BaseFindAllQueryDto } from '../dto/base-find-all-query.dto';
 
 export function applySort<T>(
   query: Query<T[], T>,
-  sortQueryDto: SortQueryDto,
+  queryDto: BaseFindAllQueryDto,
   allowedFields: string[],
 ) {
-  if (!sortQueryDto.sort) return query;
-  const sortFields = sortQueryDto.sort.split(',');
+  if (!queryDto.sort) return query;
+  const sortFields = queryDto.sort.split(',');
 
   //validation
   for (const field of sortFields) {

@@ -9,9 +9,7 @@ import {
   TaskTypeFilterDto,
 } from 'src/common/dto/filters.dto';
 
-import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
-import { SortQueryDto } from 'src/common/dto/sort-query.dto';
-import { SelectFieldsQueryDto } from 'src/common/dto/select-fields-query.dto';
+import { BaseFindAllQueryDto } from 'src/common/dto/base-find-all-query.dto';
 
 class TaskQueryFiltersDto {
   @IsOptional()
@@ -51,8 +49,6 @@ class TaskQueryFiltersDto {
 }
 
 export class FindAllTasksQueryDto extends IntersectionType(
-  PaginationQueryDto,
-  SortQueryDto,
-  SelectFieldsQueryDto,
+  BaseFindAllQueryDto,
   TaskQueryFiltersDto,
 ) {}
