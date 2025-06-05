@@ -1,5 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Model } from 'mongoose';
+import * as dayjs from 'dayjs';
+import { formatDuration } from 'src/common/helpers/format-duration.helper';
 
 type TimeEntryDocument = HydratedDocument<TimeEntry>;
 
@@ -32,6 +34,22 @@ export class TimeEntry {
 }
 
 const TimeEntrySchema = SchemaFactory.createForClass(TimeEntry);
+TimeEntrySchema.set('toJSON', { virtuals: true });
+TimeEntrySchema.set('toObject', { virtuals: true });
+
+TimeEntrySchema.virtual('startTimeLocal').get(function () {
+  return dayjs(this.startTime).format('YYYY-MM-DD, HH:mm');
+});
+
+TimeEntrySchema.virtual('endTimeLocal').get(function () {
+  if (this.endTime) return dayjs(this.endTime).format('YYYY-MM-DD, HH:mm');
+  else return null;
+});
+
+TimeEntrySchema.virtual('formattedDuration').get(function () {
+  if (this.duration) return formatDuration(this.duration);
+  else return null;
+});
 
 TimeEntrySchema.pre<TimeEntryDocument>('save', function (next) {
   if (this.endTime === null) return next();
