@@ -9,18 +9,21 @@ type TimeEntryDocument = HydratedDocument<TimeEntry>;
 export interface TimeEntryModelType extends Model<TimeEntryDocument> {}
 /* eslint-enable */
 
-@Schema()
+@Schema({ timestamps: true, id: false })
 export class TimeEntry {
   @Prop({ required: true })
   userId: string;
 
-  @Prop({ required: true })
+  @Prop({ required: false, default: null })
   taskId: string;
 
-  @Prop({ required: false, default: true })
+  @Prop({ required: false, default: null })
+  description: string;
+
+  @Prop({ required: false, default: null })
   isActive: boolean;
 
-  @Prop({ required: false, default: Date.now })
+  @Prop({ required: true })
   startTime: Date;
 
   @Prop({ required: false, default: null })
@@ -28,9 +31,6 @@ export class TimeEntry {
 
   @Prop({ required: false, default: null })
   endTime: Date;
-
-  @Prop({ required: false, default: Date.now })
-  createdAt: Date;
 }
 
 const TimeEntrySchema = SchemaFactory.createForClass(TimeEntry);
