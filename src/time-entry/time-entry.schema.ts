@@ -52,6 +52,16 @@ TimeEntrySchema.virtual('formattedDuration').get(function () {
 });
 
 TimeEntrySchema.pre<TimeEntryDocument>('save', function (next) {
+  if (this.endTime === null) {
+    this.isActive = true;
+  } else {
+    this.isActive = false;
+  }
+
+  next();
+});
+
+TimeEntrySchema.pre<TimeEntryDocument>('save', function (next) {
   if (this.endTime === null) return next();
 
   const duration: number = Math.floor(
