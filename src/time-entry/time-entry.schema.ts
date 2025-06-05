@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument, Model } from 'mongoose';
+import { HydratedDocument, Model, Types } from 'mongoose';
 import * as dayjs from 'dayjs';
 import { formatDuration } from 'src/common/helpers/format-duration.helper';
 
@@ -11,11 +11,18 @@ export interface TimeEntryModelType extends Model<TimeEntryDocument> {}
 
 @Schema({ timestamps: true, id: false })
 export class TimeEntry {
-  @Prop({ required: true })
-  userId: string;
+  readonly _id: Types.ObjectId;
 
-  @Prop({ required: false, default: null })
-  taskId: string;
+  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+  userId: Types.ObjectId;
+
+  @Prop({
+    type: Types.ObjectId,
+    ref: 'Task',
+    required: false,
+    default: null,
+  })
+  taskId: Types.ObjectId;
 
   @Prop({ required: false, default: null })
   description: string;

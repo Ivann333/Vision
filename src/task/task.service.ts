@@ -69,7 +69,7 @@ export class TaskService {
     const task = await this.taskModel.findById(id);
 
     if (!task) throw new NotFoundException('Task not found');
-    if (task.userId !== user._id.toString())
+    if (task.userId !== user._id)
       throw new UnauthorizedException(
         'You do not have permission to access this resource',
       );
@@ -85,7 +85,7 @@ export class TaskService {
     const task = await this.taskModel.findById(id);
 
     if (!task) throw new NotFoundException('Task not found');
-    if (task.userId !== user._id.toString())
+    if (task.userId !== user._id)
       throw new UnauthorizedException(
         'You do not have permission to access this resource',
       );
@@ -118,7 +118,7 @@ export class TaskService {
     const task = await this.taskModel.findById(id);
 
     if (!task) throw new NotFoundException('Task not found');
-    if (task.userId !== user._id.toString())
+    if (task.userId !== user._id)
       throw new UnauthorizedException(
         'You do not have permission to access this resource',
       );

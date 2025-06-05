@@ -12,8 +12,8 @@ export interface TaskModelType extends Model<TaskDocument> {
 export class Task {
   readonly _id: Types.ObjectId;
 
-  @Prop({ required: true })
-  userId: string;
+  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+  userId: Types.ObjectId;
 
   @Prop({ required: true, unique: true })
   name: string;
