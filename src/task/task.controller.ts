@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
@@ -27,6 +28,18 @@ export class TaskController {
   }
 
   @UseGuards(JwtGuard)
+  @Get()
+  findAll(@GetUser() user: User, @Query() query: FindAllTasksQueryDto) {
+    return this.taskSevice.findAll(user, query);
+  }
+
+  @UseGuards(JwtGuard)
+  @Get(':id')
+  findOne(@GetUser() user: User, @Param('id') id: string) {
+    return this.taskSevice.findOne(user, id);
+  }
+
+  @UseGuards(JwtGuard)
   @Patch(':id')
   update(
     @GetUser() user: User,
@@ -37,8 +50,8 @@ export class TaskController {
   }
 
   @UseGuards(JwtGuard)
-  @Get()
-  findAll(@GetUser() user: User, @Query() query: FindAllTasksQueryDto) {
-    return this.taskSevice.findAll(user, query);
+  @Delete(':id')
+  remove(@GetUser() user: User, @Param('id') id: string) {
+    return this.taskSevice.remove(user, id);
   }
 }

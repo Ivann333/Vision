@@ -38,6 +38,49 @@ export class TaskService {
     };
   }
 
+  async findAll(user: User, query: FindAllTasksQueryDto) {
+    let tasksQuery = this.taskModel.find({ userId: user._id });
+
+    tasksQuery = applyPagination(tasksQuery, query);
+    tasksQuery = applySort(
+      tasksQuery,
+      query,
+      Object.keys(this.taskModel.schema.paths),
+    );
+    tasksQuery = applySelectFields(
+      tasksQuery,
+      query,
+      Object.keys(this.taskModel.schema.paths),
+    );
+
+    tasksQuery = applyQueryFilter(tasksQuery, query);
+
+    const tasks = await tasksQuery;
+
+    return {
+      success: true,
+      message: 'Tasks successfully retrieved',
+      results: tasks.length,
+      data: { tasks },
+    };
+  }
+
+  async findOne(user: User, id: string) {
+    const task = await this.taskModel.findById(id);
+
+    if (!task) throw new NotFoundException('Task not found');
+    if (task.userId !== user._id.toString())
+      throw new UnauthorizedException(
+        'You do not have permission to access this resource',
+      );
+
+    return {
+      success: true,
+      message: 'Task successfully retrieved',
+      data: { task },
+    };
+  }
+
   async update(user: User, id: string, updateTaskDto: UpdateTaskDto) {
     const task = await this.taskModel.findById(id);
 
@@ -71,30 +114,21 @@ export class TaskService {
     };
   }
 
-  async findAll(user: User, query: FindAllTasksQueryDto) {
-    let tasksQuery = this.taskModel.find({ userId: user._id });
+  async remove(user: User, id: string) {
+    const task = await this.taskModel.findById(id);
 
-    tasksQuery = applyPagination(tasksQuery, query);
-    tasksQuery = applySort(
-      tasksQuery,
-      query,
-      Object.keys(this.taskModel.schema.paths),
-    );
-    tasksQuery = applySelectFields(
-      tasksQuery,
-      query,
-      Object.keys(this.taskModel.schema.paths),
-    );
+    if (!task) throw new NotFoundException('Task not found');
+    if (task.userId !== user._id.toString())
+      throw new UnauthorizedException(
+        'You do not have permission to access this resource',
+      );
 
-    tasksQuery = applyQueryFilter(tasksQuery, query);
-
-    const tasks = await tasksQuery;
+    await task.deleteOne();
 
     return {
       success: true,
-      message: 'Tasks successfully retrieved',
-      results: tasks.length,
-      data: { tasks },
+      message: 'Task successfully deleted',
+      data: null,
     };
   }
 
