@@ -95,6 +95,18 @@ export class TimeEntryService {
     };
   }
 
+  async findOne(user: User, id: string) {
+    const timeEntry = await this.getTimeEntryOrFail(id);
+
+    this.ensureUserIsOwner(timeEntry, user._id.toString());
+
+    return {
+      success: true,
+      message: 'Time entry successfully retrieved',
+      data: { timeEntry },
+    };
+  }
+
   async update(user: User, id: string, updateTimeEntryDto: UpdateTimeEntryDto) {
     const { startTime: startTimeISO, endTime: endTimeISO } = updateTimeEntryDto;
 

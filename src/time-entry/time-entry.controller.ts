@@ -36,6 +36,11 @@ export class TimeEntryController {
     return this.timeEntryService.findAll(user, query);
   }
 
+  @UseGuards(JwtGuard)
+  @Get(':id')
+  findOne(@GetUser() user: User, @Param('id') id: string) {
+    return this.timeEntryService.findOne(user, id);
+  }
 
   @UseGuards(JwtGuard)
   @Patch(':id')
