@@ -15,6 +15,7 @@ import { GetUser } from 'src/auth/decorator/get-user.decorator';
 import { User } from 'src/user/user.schema';
 import { CreateTimeEntryDto } from './dto/create-time-entry.dto';
 import { FindAllTimeEntriesQueryDto } from './dto/find-all-time-entries-query.dto';
+import { UpdateTimeEntryDto } from './dto/update-time-entry.dto';
 
 @Controller('time-entries')
 export class TimeEntryController {
