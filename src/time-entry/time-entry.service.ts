@@ -31,17 +31,15 @@ export class TimeEntryService {
 
   async create(user: User, createTimeEntryDto: CreateTimeEntryDto) {
     const {
-      startTime: startTimeISOString,
-      endTime: endTimeISOString,
+      startTime: startTimeISO,
+      endTime: endTimeISO,
       taskId,
       description,
     } = createTimeEntryDto;
 
-    const startTime = new Date(startTimeISOString);
-    const endTime = endTimeISOString ? new Date(endTimeISOString) : undefined;
-
-    if (!endTime) {
-      //check for active entries
+    if (endTimeISO) {
+      this.ensureEndTimeAfterStartTime(startTimeISO, endTimeISO);
+    } else {
       const activeEntry = await this.getActiveTimeEntry(user._id.toString());
 
       if (activeEntry)
@@ -51,13 +49,14 @@ export class TimeEntryService {
         throw new BadRequestException('endTime must be after startTime');
       }
     }
+
     if (taskId) await this.ensureTaskExists(taskId);
 
     const newEntry = await this.timeEntryModel.create({
       userId: user._id,
       taskId,
-      startTime: startTime,
-      endTime: endTime,
+      startTime: startTimeISO,
+      endTime: endTimeISO,
       description,
     });
 
