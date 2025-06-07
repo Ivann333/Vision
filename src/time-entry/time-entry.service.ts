@@ -14,6 +14,11 @@ import {
 import { User } from 'src/user/user.schema';
 import { Task, TaskModelType } from 'src/task/task.schema';
 import { CreateTimeEntryDto } from './dto/create-time-entry.dto';
+import { FindAllTimeEntriesQueryDto } from './dto/find-all-time-entries-query.dto';
+import { applyPagination } from 'src/common/helpers/apply-pagination.helper';
+import { applySort } from 'src/common/helpers/apply-sort.helper';
+import { applySelectFields } from 'src/common/helpers/apply-select-fields.helper';
+import { applyQueryFilter } from 'src/common/helpers/apply-query-filter.helper';
 import { UpdateTimeEntryDto } from './dto/update-time-entry.dto';
 import { Types } from 'mongoose';
 
@@ -62,6 +67,34 @@ export class TimeEntryService {
       data: { timeEntry: newEntry },
     };
   }
+
+  async findAll(user: User, query: FindAllTimeEntriesQueryDto) {
+    let mongoQuery = this.timeEntryModel.find({ userId: user._id });
+
+    mongoQuery = applyPagination(mongoQuery, query);
+    mongoQuery = applySort(
+      mongoQuery,
+      query,
+      Object.keys(this.timeEntryModel.schema.paths),
+    );
+    mongoQuery = applySelectFields(
+      mongoQuery,
+      query,
+      Object.keys(this.timeEntryModel.schema.paths),
+    );
+
+    mongoQuery = applyQueryFilter(mongoQuery, query);
+
+    const timeEntries = await mongoQuery;
+
+    return {
+      success: true,
+      message: 'Time entries successfully retrieved',
+      results: timeEntries.length,
+      data: { timeEntries },
+    };
+  }
+
   async update(user: User, id: string, updateTimeEntryDto: UpdateTimeEntryDto) {
     const { startTime: startTimeISO, endTime: endTimeISO } = updateTimeEntryDto;
 
