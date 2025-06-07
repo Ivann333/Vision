@@ -1,10 +1,21 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 
-import { TimeEntry, TimeEntryModelType } from './time-entry.schema';
+import {
+  TimeEntry,
+  TimeEntryDocument,
+  TimeEntryModelType,
+} from './time-entry.schema';
 import { User } from 'src/user/user.schema';
 import { Task, TaskModelType } from 'src/task/task.schema';
 import { CreateTimeEntryDto } from './dto/create-time-entry.dto';
+import { UpdateTimeEntryDto } from './dto/update-time-entry.dto';
+import { Types } from 'mongoose';
 
 @Injectable()
 export class TimeEntryService {
@@ -51,10 +62,62 @@ export class TimeEntryService {
       data: { timeEntry: newEntry },
     };
   }
+  async update(user: User, id: string, updateTimeEntryDto: UpdateTimeEntryDto) {
+    const { startTime: startTimeISO, endTime: endTimeISO } = updateTimeEntryDto;
+
+    const timeEntry = await this.getTimeEntryOrFail(id);
+    this.ensureUserIsOwner(timeEntry, user._id.toString());
+
+    const startTime = startTimeISO || timeEntry.startTime;
+    const endTime = endTimeISO || timeEntry.endTime;
+
+    if (endTime) this.ensureEndTimeAfterStartTime(startTime, endTime);
+
+    for (const [key, value] of Object.entries(updateTimeEntryDto)) {
+      if (value) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        timeEntry[key] = value;
+      }
+    }
+
+    const updatedTimeEntry = await timeEntry.save();
+
+    return {
+      success: true,
+      message: 'Time entry successfully updated',
+      data: { timeEntry: updatedTimeEntry },
+    };
+  }
+
+  ensureEndTimeAfterStartTime(
+    startTime: string | Date,
+    endTime: string | Date,
+  ) {
+    const endTimeDate = new Date(endTime);
+    const startTimeDate = new Date(startTime);
+
+    if (endTimeDate <= startTimeDate)
+      throw new BadRequestException('endTime must be after startTime');
+  }
+
+  async getTimeEntryOrFail(timeEntryId: string) {
+    const timeEntry = await this.timeEntryModel.findById(timeEntryId);
+
+    if (!timeEntry) throw new NotFoundException('Time entry not found');
+
+    return timeEntry;
+  }
+
+  ensureUserIsOwner(timeEntry: TimeEntryDocument, userId: string) {
+    if (timeEntry.userId.toString() !== userId)
+      throw new UnauthorizedException(
+        'You do not have permission to access this resource',
+      );
+  }
 
   async getActiveTimeEntry(userId: string) {
     const activeEntry = await this.timeEntryModel.findOne({
-      userId,
+      userId: new Types.ObjectId(userId),
       isActive: true,
     });
 

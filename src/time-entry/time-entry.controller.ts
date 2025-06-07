@@ -17,4 +17,15 @@ export class TimeEntryController {
   ) {
     return this.timeEntryService.create(user, createTimeEntryDto);
   }
+
+  @UseGuards(JwtGuard)
+  @Patch(':id')
+  update(
+    @GetUser() user: User,
+    @Param('id') id: string,
+    @Body() updateTimeEntryDto: UpdateTimeEntryDto,
+  ) {
+    return this.timeEntryService.update(user, id, updateTimeEntryDto);
+  }
+
 }
