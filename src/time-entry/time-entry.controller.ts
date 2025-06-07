@@ -52,4 +52,9 @@ export class TimeEntryController {
     return this.timeEntryService.update(user, id, updateTimeEntryDto);
   }
 
+  @UseGuards(JwtGuard)
+  @Delete(':id')
+  remove(@GetUser() user: User, @Param('id') id: string) {
+    return this.timeEntryService.remove(user, id);
+  }
 }

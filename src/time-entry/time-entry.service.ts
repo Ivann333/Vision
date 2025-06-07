@@ -128,6 +128,20 @@ export class TimeEntryService {
     };
   }
 
+  async remove(user: User, id: string) {
+    const timeEntry = await this.getTimeEntryOrFail(id);
+
+    this.ensureUserIsOwner(timeEntry, user._id.toString());
+
+    await timeEntry.deleteOne();
+
+    return {
+      success: true,
+      message: 'Time entry successfully deleted',
+      data: null,
+    };
+  }
+
   ensureEndTimeAfterStartTime(
     startTime: string | Date,
     endTime: string | Date,
