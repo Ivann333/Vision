@@ -41,13 +41,8 @@ export class TimeEntryService {
       this.ensureEndTimeAfterStartTime(startTimeISO, endTimeISO);
     } else {
       const activeEntry = await this.getActiveTimeEntry(user._id.toString());
-
       if (activeEntry)
         throw new BadRequestException('You already have an active time entry');
-    } else {
-      if (endTime <= startTime) {
-        throw new BadRequestException('endTime must be after startTime');
-      }
     }
 
     if (taskId) await this.ensureTaskExists(taskId);
