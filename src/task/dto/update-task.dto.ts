@@ -4,7 +4,9 @@ import {
   IsOptional,
   IsString,
   IsDateString,
+  IsBoolean,
 } from 'class-validator';
+import { Transform, TransformFnParams } from 'class-transformer';
 import { TaskType } from '../enums/task-type.enum';
 
 export class UpdateTaskDto {
@@ -27,4 +29,13 @@ export class UpdateTaskDto {
   @IsOptional()
   @IsNumber()
   estimation?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  @Transform(({ value }: TransformFnParams): TransformFnParams | boolean => {
+    if (value === 'true') return true;
+    if (value === 'false') return false;
+    return value;
+  })
+  isCompleted?: boolean;
 }
