@@ -30,15 +30,10 @@ export class TimeEntryService {
   ) {}
 
   async create(user: User, createTimeEntryDto: CreateTimeEntryDto) {
-    const {
-      startTime: startTimeISO,
-      endTime: endTimeISO,
-      taskId,
-      description,
-    } = createTimeEntryDto;
+    const { startTime, endTime, taskId } = createTimeEntryDto;
 
-    if (endTimeISO) {
-      this.ensureEndTimeAfterStartTime(startTimeISO, endTimeISO);
+    if (endTime) {
+      this.ensureEndTimeAfterStartTime(startTime, endTime);
     } else {
       const activeEntry = await this.getActiveTimeEntry(user._id.toString());
       if (activeEntry)
@@ -49,10 +44,7 @@ export class TimeEntryService {
 
     const newEntry = await this.timeEntryModel.create({
       userId: user._id,
-      taskId,
-      startTime: startTimeISO,
-      endTime: endTimeISO,
-      description,
+      ...createTimeEntryDto,
     });
 
     return {
@@ -65,18 +57,10 @@ export class TimeEntryService {
   async findAll(user: User, query: FindAllTimeEntriesQueryDto) {
     let mongoQuery = this.timeEntryModel.find({ userId: user._id });
 
+    const allowedFields = Object.keys(this.timeEntryModel.schema.paths);
+    mongoQuery = applySort(mongoQuery, query, allowedFields);
+    mongoQuery = applySelectFields(mongoQuery, query, allowedFields);
     mongoQuery = applyPagination(mongoQuery, query);
-    mongoQuery = applySort(
-      mongoQuery,
-      query,
-      Object.keys(this.timeEntryModel.schema.paths),
-    );
-    mongoQuery = applySelectFields(
-      mongoQuery,
-      query,
-      Object.keys(this.timeEntryModel.schema.paths),
-    );
-
     mongoQuery = applyQueryFilter(mongoQuery, query);
 
     const timeEntries = await mongoQuery;
@@ -102,15 +86,16 @@ export class TimeEntryService {
   }
 
   async update(user: User, id: string, updateTimeEntryDto: UpdateTimeEntryDto) {
-    const { startTime: startTimeISO, endTime: endTimeISO } = updateTimeEntryDto;
+    const { startTime: newStartTime, endTime: newEndTime } = updateTimeEntryDto;
 
     const timeEntry = await this.getTimeEntryOrFail(id);
     this.ensureUserIsOwner(timeEntry, user._id.toString());
 
-    const startTime = startTimeISO || timeEntry.startTime;
-    const endTime = endTimeISO || timeEntry.endTime;
+    const startTime = newStartTime || timeEntry.startTime;
+    const endTime = newEndTime || timeEntry.endTime;
 
-    if (endTime) this.ensureEndTimeAfterStartTime(startTime, endTime);
+    if ((newEndTime || newStartTime) && endTime)
+      this.ensureEndTimeAfterStartTime(startTime, endTime);
 
     for (const [key, value] of Object.entries(updateTimeEntryDto)) {
       if (value) {
@@ -142,7 +127,7 @@ export class TimeEntryService {
     };
   }
 
-  ensureEndTimeAfterStartTime(
+  private ensureEndTimeAfterStartTime(
     startTime: string | Date,
     endTime: string | Date,
   ) {
@@ -153,7 +138,7 @@ export class TimeEntryService {
       throw new BadRequestException('endTime must be after startTime');
   }
 
-  async getTimeEntryOrFail(timeEntryId: string) {
+  private async getTimeEntryOrFail(timeEntryId: string) {
     const timeEntry = await this.timeEntryModel.findById(timeEntryId);
 
     if (!timeEntry) throw new NotFoundException('Time entry not found');
@@ -161,14 +146,14 @@ export class TimeEntryService {
     return timeEntry;
   }
 
-  ensureUserIsOwner(timeEntry: TimeEntryDocument, userId: string) {
+  private ensureUserIsOwner(timeEntry: TimeEntryDocument, userId: string) {
     if (timeEntry.userId.toString() !== userId)
       throw new UnauthorizedException(
         'You do not have permission to access this resource',
       );
   }
 
-  async getActiveTimeEntry(userId: string) {
+  private async getActiveTimeEntry(userId: string) {
     const activeEntry = await this.timeEntryModel.findOne({
       userId: new Types.ObjectId(userId),
       isActive: true,
@@ -177,7 +162,7 @@ export class TimeEntryService {
     return activeEntry;
   }
 
-  async ensureTaskExists(taskId: string) {
+  private async ensureTaskExists(taskId: string) {
     const task = await this.taskModel.findById(taskId);
 
     if (!task)
