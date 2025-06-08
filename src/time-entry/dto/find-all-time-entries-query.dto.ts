@@ -1,12 +1,12 @@
 import { IsOptional, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
+import { IntersectionType } from '@nestjs/swagger';
 import {
   BooleanFilterDto,
   DateFilterDto,
   NumberFilterDto,
 } from 'src/common/dto/filters.dto';
 import { BaseFindAllQueryDto } from 'src/common/dto/base-find-all-query.dto';
-import { IntersectionType } from '@nestjs/swagger';
 
 class TimeEntryQueryFiltersDto {
   @IsOptional()

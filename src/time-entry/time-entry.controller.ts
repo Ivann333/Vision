@@ -9,7 +9,7 @@ import {
   Delete,
   Patch,
 } from '@nestjs/common';
-import { JwtGuard } from 'src/auth/guard';
+import { JwtGuard } from 'src/auth/guard/jwt.guard';
 import { TimeEntryService } from './time-entry.service';
 import { GetUser } from 'src/auth/decorator/get-user.decorator';
 import { User } from 'src/user/user.schema';

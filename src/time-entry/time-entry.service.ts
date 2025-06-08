@@ -5,7 +5,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-
+import { Types } from 'mongoose';
 import {
   TimeEntry,
   TimeEntryDocument,
@@ -20,7 +20,6 @@ import { applySort } from 'src/common/helpers/apply-sort.helper';
 import { applySelectFields } from 'src/common/helpers/apply-select-fields.helper';
 import { applyQueryFilter } from 'src/common/helpers/apply-query-filter.helper';
 import { UpdateTimeEntryDto } from './dto/update-time-entry.dto';
-import { Types } from 'mongoose';
 
 @Injectable()
 export class TimeEntryService {
