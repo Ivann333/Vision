@@ -25,6 +25,10 @@ export class UserController {
   @UseGuards(JwtGuard)
   @Get('me')
   getMe(@GetUser() user: User) {
-    return { data: { user } };
+    return {
+      success: true,
+      message: 'User information retrieved successfully',
+      data: { user },
+    };
   }
 }

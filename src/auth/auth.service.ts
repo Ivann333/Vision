@@ -17,13 +17,13 @@ export class AuthService {
 
   async signup(signupDto: SignupDto) {
     const user = await this.userModel.create(signupDto);
-    const { username, createdAt, email } = user;
+    const { username, createdAt, email, _id } = user;
     const access_token = await this.signToken(user.id, user.email);
 
     return {
       success: true,
       message: 'You have successfully signup',
-      data: { access_token, user: { username, email, createdAt } },
+      data: { access_token, user: { _id, username, email, createdAt } },
     };
   }
 
@@ -49,6 +49,8 @@ export class AuthService {
         user: {
           username: user.username,
           email: user.email,
+          _id: user._id,
+          createdAt: user.createdAt,
         },
       },
     };
