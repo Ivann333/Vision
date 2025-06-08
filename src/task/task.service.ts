@@ -5,7 +5,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Task, TaskModelType } from './task.schema';
+import { Task, TaskDocument, TaskModelType } from './task.schema';
 import { User } from 'src/user/user.schema';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
@@ -20,8 +20,7 @@ import { applyQueryFilter } from 'src/common/helpers/apply-query-filter.helper';
 export class TaskService {
   constructor(@InjectModel(Task.name) private taskModel: TaskModelType) {}
   async create(user: User, createTaskDto: CreateTaskDto) {
-    const { type } = createTaskDto;
-    const startDate = new Date(createTaskDto.startDate);
+    const { type, startDate } = createTaskDto;
 
     this.ensureValidStartDate(startDate, type);
     await this.ensureMaxTasksLimit(startDate, type);
@@ -41,18 +40,10 @@ export class TaskService {
   async findAll(user: User, query: FindAllTasksQueryDto) {
     let tasksQuery = this.taskModel.find({ userId: user._id });
 
+    const allowedFields = Object.keys(this.taskModel.schema.paths);
+    tasksQuery = applySort(tasksQuery, query, allowedFields);
+    tasksQuery = applySelectFields(tasksQuery, query, allowedFields);
     tasksQuery = applyPagination(tasksQuery, query);
-    tasksQuery = applySort(
-      tasksQuery,
-      query,
-      Object.keys(this.taskModel.schema.paths),
-    );
-    tasksQuery = applySelectFields(
-      tasksQuery,
-      query,
-      Object.keys(this.taskModel.schema.paths),
-    );
-
     tasksQuery = applyQueryFilter(tasksQuery, query);
 
     const tasks = await tasksQuery;
@@ -66,13 +57,8 @@ export class TaskService {
   }
 
   async findOne(user: User, id: string) {
-    const task = await this.taskModel.findById(id);
-
-    if (!task) throw new NotFoundException('Task not found');
-    if (task.userId !== user._id)
-      throw new UnauthorizedException(
-        'You do not have permission to access this resource',
-      );
+    const task = await this.getTaskOrFail(id);
+    this.ensureUserIsOwner(task, user._id.toString());
 
     return {
       success: true,
@@ -82,18 +68,13 @@ export class TaskService {
   }
 
   async update(user: User, id: string, updateTaskDto: UpdateTaskDto) {
-    const task = await this.taskModel.findById(id);
+    const { startDate, type: newType } = updateTaskDto;
 
-    if (!task) throw new NotFoundException('Task not found');
-    if (task.userId !== user._id)
-      throw new UnauthorizedException(
-        'You do not have permission to access this resource',
-      );
+    const task = await this.getTaskOrFail(id);
+    this.ensureUserIsOwner(task, user._id.toString());
 
-    if (updateTaskDto.startDate) {
-      const startDate = new Date(updateTaskDto.startDate);
-      const type = updateTaskDto.type || task.type;
-
+    if (startDate) {
+      const type = newType || task.type;
       this.ensureValidStartDate(startDate, type);
       await this.ensureMaxTasksLimit(startDate, type);
     }
@@ -115,13 +96,8 @@ export class TaskService {
   }
 
   async remove(user: User, id: string) {
-    const task = await this.taskModel.findById(id);
-
-    if (!task) throw new NotFoundException('Task not found');
-    if (task.userId !== user._id)
-      throw new UnauthorizedException(
-        'You do not have permission to access this resource',
-      );
+    const task = await this.getTaskOrFail(id);
+    this.ensureUserIsOwner(task, user._id.toString());
 
     await task.deleteOne();
 
@@ -132,8 +108,25 @@ export class TaskService {
     };
   }
 
-  async ensureMaxTasksLimit(startDate: Date, type: TaskType) {
-    const endDate = this.taskModel.calculateEndDate(startDate, type);
+  private ensureUserIsOwner(task: TaskDocument, userId: string) {
+    if (task.userId.toString() !== userId)
+      throw new UnauthorizedException(
+        'You do not have permission to access this resource',
+      );
+  }
+
+  private async getTaskOrFail(taskId: string) {
+    const task = await this.taskModel.findById(taskId);
+
+    if (!task) throw new NotFoundException('Task not found');
+
+    return task;
+  }
+
+  private async ensureMaxTasksLimit(startDate: Date | string, type: TaskType) {
+    const convertedStartDate = new Date(startDate);
+
+    const endDate = this.taskModel.calculateEndDate(convertedStartDate, type);
 
     const tasks = await this.taskModel.find({
       startDate: startDate,
@@ -142,25 +135,29 @@ export class TaskService {
 
     if (tasks && tasks.length >= 3)
       throw new BadRequestException(
-        `You already have 3 ${type} tasks for ${startDate.toISOString().slice(0, 10)} - ${endDate.toISOString().slice(0, 10)}`,
+        `You already have 3 ${type} tasks for ${convertedStartDate.toISOString().slice(0, 10)} - ${endDate.toISOString().slice(0, 10)}`,
       );
   }
 
-  ensureValidStartDate(startDate: Date, type: TaskType) {
+  private ensureValidStartDate(startDate: Date | string, type: TaskType) {
+    const convertedStartDate = new Date(startDate);
     if (type === TaskType.Annual) {
-      if (startDate.getMonth() !== 0 || startDate.getDate() !== 1)
+      if (
+        convertedStartDate.getMonth() !== 0 ||
+        convertedStartDate.getDate() !== 1
+      )
         throw new BadRequestException(
           'Annual task must start on January 1st (format: YYYY-01-01)',
         );
     }
     if (type === TaskType.Monthly) {
-      if (startDate.getDate() !== 1)
+      if (convertedStartDate.getDate() !== 1)
         throw new BadRequestException(
           'Monthly task must start on the 1st day of the month (format: YYYY-MM-01)',
         );
     }
     if (type === TaskType.Weekly) {
-      if (startDate.getDay() !== 1)
+      if (convertedStartDate.getDay() !== 1)
         throw new BadRequestException('Weekly task must start on Monday');
     }
   }
