@@ -6,6 +6,7 @@ import { UserModule } from './user/user.module';
 import { DatabaseModule } from './database/database.module';
 import { TaskModule } from './task/task.module';
 import { TimeEntryModule } from './time-entry/time-entry.module';
+import { TimeBlockModule } from './time-block/time-block.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { TimeEntryModule } from './time-entry/time-entry.module';
     DatabaseModule,
     TaskModule,
     TimeEntryModule,
+    TimeBlockModule,
   ],
   providers: [
     {
