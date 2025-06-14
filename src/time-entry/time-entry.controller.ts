@@ -17,11 +17,11 @@ import { CreateTimeEntryDto } from './dto/create-time-entry.dto';
 import { FindAllTimeEntriesQueryDto } from './dto/find-all-time-entries-query.dto';
 import { UpdateTimeEntryDto } from './dto/update-time-entry.dto';
 
+@UseGuards(JwtGuard)
 @Controller('time-entries')
 export class TimeEntryController {
   constructor(private timeEntryService: TimeEntryService) {}
 
-  @UseGuards(JwtGuard)
   @Post()
   create(
     @GetUser() user: User,
@@ -30,19 +30,16 @@ export class TimeEntryController {
     return this.timeEntryService.create(user, createTimeEntryDto);
   }
 
-  @UseGuards(JwtGuard)
   @Get()
   findAll(@GetUser() user: User, @Query() query: FindAllTimeEntriesQueryDto) {
     return this.timeEntryService.findAll(user, query);
   }
 
-  @UseGuards(JwtGuard)
   @Get(':id')
   findOne(@GetUser() user: User, @Param('id') id: string) {
     return this.timeEntryService.findOne(user, id);
   }
 
-  @UseGuards(JwtGuard)
   @Patch(':id')
   update(
     @GetUser() user: User,
@@ -52,7 +49,6 @@ export class TimeEntryController {
     return this.timeEntryService.update(user, id, updateTimeEntryDto);
   }
 
-  @UseGuards(JwtGuard)
   @Delete(':id')
   remove(@GetUser() user: User, @Param('id') id: string) {
     return this.timeEntryService.remove(user, id);
