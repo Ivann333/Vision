@@ -8,7 +8,7 @@ export interface TaskModelType extends Model<TaskDocument> {
   calculateEndDate(startDate: Date, type: TaskType): Date;
 }
 
-@Schema()
+@Schema({ timestamps: true, id: false })
 export class Task {
   readonly _id: Types.ObjectId;
 
@@ -38,9 +38,6 @@ export class Task {
 
   @Prop({ required: false, default: false })
   isCompleted: boolean;
-
-  @Prop({ required: false, default: Date.now })
-  createdAt: Date;
 }
 
 const TaskSchema = SchemaFactory.createForClass(Task);

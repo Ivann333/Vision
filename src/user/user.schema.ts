@@ -11,7 +11,7 @@ export interface UserModelType extends Model<UserDocument> {
   ): Promise<boolean>;
 }
 
-@Schema()
+@Schema({ timestamps: true, id: false })
 export class User {
   readonly _id: Types.ObjectId;
 
@@ -23,9 +23,6 @@ export class User {
 
   @Prop({ required: true, select: false })
   password: string;
-
-  @Prop({ default: Date.now })
-  createdAt: Date;
 }
 
 const UserSchema = SchemaFactory.createForClass(User);
