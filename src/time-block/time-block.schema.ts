@@ -14,6 +14,9 @@ export class TimeBlock {
   @Prop({ type: Types.ObjectId, ref: 'Task', required: true })
   taskId: Types.ObjectId;
 
+  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+  userId: Types.ObjectId;
+
   @Prop({ required: false, default: null })
   description: string;
 
@@ -28,5 +31,17 @@ export class TimeBlock {
 }
 
 const TimeBlockSchema = SchemaFactory.createForClass(TimeBlock);
+
+TimeBlockSchema.pre('save', function (next) {
+  if (!this.isModified('endTime') && !this.isModified('startTime'))
+    return next();
+
+  const duration: number = Math.floor(
+    (this.endTime.getTime() - this.startTime.getTime()) / 1000,
+  );
+
+  this.duration = duration;
+  next();
+});
 
 export { TimeBlockSchema };
