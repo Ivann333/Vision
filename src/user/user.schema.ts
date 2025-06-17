@@ -14,6 +14,7 @@ export interface UserModelType extends Model<UserDocument> {
 @Schema({ timestamps: true, id: false })
 export class User {
   readonly _id: Types.ObjectId;
+  readonly createdAt: Date;
 
   @Prop({ required: true, unique: true })
   username: string;

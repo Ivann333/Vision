@@ -40,7 +40,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    const access_token = await this.signToken(user.id, user.email);
+    const access_token = await this.signToken(user._id.toString(), user.email);
     return {
       success: true,
       message: 'You have successfully login',
@@ -56,7 +56,7 @@ export class AuthService {
     };
   }
 
-  signToken(userId: number, email: string): Promise<string> {
+  signToken(userId: string, email: string): Promise<string> {
     const payload: JwtPayload = { sub: userId, email };
 
     const expiresIn: string | undefined = this.config.get('JWT_EXPIRES_IN');
