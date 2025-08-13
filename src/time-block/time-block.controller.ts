@@ -50,7 +50,7 @@ export class TimeBlockController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.timeBlockService.remove(+id);
+  remove(@GetUser() user: User, @Param('id') id: string) {
+    return this.timeBlockService.remove(user, id);
   }
 }

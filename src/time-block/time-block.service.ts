@@ -110,6 +110,18 @@ export class TimeBlockService {
     };
   }
 
+  async remove(user: User, id: string) {
+    const timeBlock = await this.getTimeBlockOrFail(user, id);
+
+    await timeBlock.deleteOne();
+
+    return {
+      success: true,
+      message: 'Time block successfully deleted',
+      data: null,
+    };
+  }
+
   private async getTimeBlockOrFail(user: User, timeBlockId: string) {
     const timeBlock = await this.timeBlockModel.findOne({
       _id: new Types.ObjectId(timeBlockId),
