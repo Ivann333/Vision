@@ -23,7 +23,7 @@ export class TaskService {
     const { type, startDate } = createTaskDto;
 
     this.ensureValidStartDate(startDate, type);
-    await this.ensureMaxTasksLimit(startDate, type);
+    await this.ensureMaxTasksLimit(user, startDate, type);
 
     const newTask = await this.taskModel.create({
       userId: user._id,
@@ -76,7 +76,7 @@ export class TaskService {
     if (startDate) {
       const type = newType || task.type;
       this.ensureValidStartDate(startDate, type);
-      await this.ensureMaxTasksLimit(startDate, type);
+      await this.ensureMaxTasksLimit(user, startDate, type);
     }
 
     const updatedTask = await this.taskModel.findByIdAndUpdate(
@@ -123,12 +123,17 @@ export class TaskService {
     return task;
   }
 
-  private async ensureMaxTasksLimit(startDate: Date | string, type: TaskType) {
+  private async ensureMaxTasksLimit(
+    user: User,
+    startDate: Date | string,
+    type: TaskType,
+  ) {
     const convertedStartDate = new Date(startDate);
 
     const endDate = this.taskModel.calculateEndDate(convertedStartDate, type);
 
     const tasks = await this.taskModel.find({
+      userId: user._id,
       startDate: startDate,
       endDate: endDate,
     });
