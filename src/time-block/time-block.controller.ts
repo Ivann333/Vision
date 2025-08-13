@@ -15,6 +15,7 @@ import { CreateTimeBlockDto } from './dto/create-time-block.dto';
 import { GetUser } from 'src/auth/decorator/get-user.decorator';
 import { User } from 'src/user/user.schema';
 import { FindAllTimeBlocksQueryDto } from './dto/find-all-time-blocks-query.dto';
+import { UpdateTimeBlockDto } from './dto/update-time-block.dto';
 
 @UseGuards(JwtGuard)
 @Controller('time-blocks')
@@ -40,8 +41,12 @@ export class TimeBlockController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string) {
-    return this.timeBlockService.update(+id);
+  update(
+    @GetUser() user: User,
+    @Param('id') id: string,
+    @Body() updateTimeBlockDto: UpdateTimeBlockDto,
+  ) {
+    return this.timeBlockService.update(user, id, updateTimeBlockDto);
   }
 
   @Delete(':id')
