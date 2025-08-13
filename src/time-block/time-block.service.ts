@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { TimeBlock, TimeBlockModelType } from './time-block.schema';
 import { Task, TaskModelType } from 'src/task/task.schema';
@@ -61,16 +65,25 @@ export class TimeBlockService {
     };
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} time block`;
+  async findOne(user: User, id: string) {
+    const timeBlock = await this.getTimeBlockOrFail(user, id);
+
+    return {
+      success: true,
+      message: 'Time block successfully retrieved',
+      data: { timeEntry: timeBlock },
+    };
   }
 
-  update(id: number) {
-    return `This action updates a #${id} time block`;
-  }
+  private async getTimeBlockOrFail(user: User, timeBlockId: string) {
+    const timeBlock = await this.timeBlockModel.findOne({
+      _id: new Types.ObjectId(timeBlockId),
+      userId: user._id,
+    });
 
-  remove(id: number) {
-    return `This action removes a #${id} time block`;
+    if (!timeBlock) throw new NotFoundException('Time block not found');
+
+    return timeBlock;
   }
 
   private async ensureTaskExists(taskId: string) {

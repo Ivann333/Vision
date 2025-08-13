@@ -35,8 +35,8 @@ export class TimeBlockController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.timeBlockService.findOne(+id);
+  findOne(@GetUser() user: User, @Param('id') id: string) {
+    return this.timeBlockService.findOne(user, id);
   }
 
   @Patch(':id')
