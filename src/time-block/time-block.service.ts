@@ -4,7 +4,11 @@ import { TimeBlock, TimeBlockModelType } from './time-block.schema';
 import { Task, TaskModelType } from 'src/task/task.schema';
 import { CreateTimeBlockDto } from './dto/create-time-block.dto';
 import { User } from 'src/user/user.schema';
-import { Types } from 'mongoose';
+import { FindAllTimeBlocksQueryDto } from './dto/find-all-time-blocks-query.dto';
+import { applyPagination } from 'src/common/helpers/apply-pagination.helper';
+import { applySort } from 'src/common/helpers/apply-sort.helper';
+import { applySelectFields } from 'src/common/helpers/apply-select-fields.helper';
+import { applyQueryFilter } from 'src/common/helpers/apply-query-filter.helper';
 
 @Injectable()
 export class TimeBlockService {
@@ -38,8 +42,23 @@ export class TimeBlockService {
     };
   }
 
-  findAll() {
-    return `This action returns all time blocks`;
+  async findAll(user: User, query: FindAllTimeBlocksQueryDto) {
+    let mongoQuery = this.timeBlockModel.find({ userId: user._id });
+
+    const allowedFields = Object.keys(this.timeBlockModel.schema.paths);
+    mongoQuery = applySort(mongoQuery, query, allowedFields);
+    mongoQuery = applySelectFields(mongoQuery, query, allowedFields);
+    mongoQuery = applyPagination(mongoQuery, query);
+    mongoQuery = applyQueryFilter(mongoQuery, query);
+
+    const timeBlocks = await mongoQuery;
+
+    return {
+      success: true,
+      message: 'Time blocks successfully retrieved',
+      results: timeBlocks.length,
+      data: { timeBlocks },
+    };
   }
 
   findOne(id: number) {
