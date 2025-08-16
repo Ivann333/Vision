@@ -1,10 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument, Model, Types } from 'mongoose';
-
-type TimeBlockDocument = HydratedDocument<TimeBlock>;
+import { Model, Types } from 'mongoose';
 
 /* eslint-disable */
-export interface TimeBlockModelType extends Model<TimeBlockDocument> {}
+export interface TimeBlockModelType extends Model<TimeBlock> {}
 /* eslint-enable */
 
 @Schema({ timestamps: true, id: false })

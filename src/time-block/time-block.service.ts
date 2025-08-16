@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
 import { TimeBlock, TimeBlockModelType } from './time-block.schema';
@@ -15,6 +11,8 @@ import { applySort } from 'src/common/helpers/apply-sort.helper';
 import { applySelectFields } from 'src/common/helpers/apply-select-fields.helper';
 import { applyQueryFilter } from 'src/common/helpers/apply-query-filter.helper';
 import { UpdateTimeBlockDto } from './dto/update-time-block.dto';
+import { ensureEndTimeAfterStartTime } from 'src/common/helpers/ensure-end-time-after-start-time.helper';
+import { getDocumentOrFail } from 'src/common/helpers/get-document-or-fail.helper';
 
 @Injectable()
 export class TimeBlockService {
@@ -28,8 +26,14 @@ export class TimeBlockService {
   async create(user: User, createTimeBlockDto: CreateTimeBlockDto) {
     const { taskId, startTime, endTime } = createTimeBlockDto;
 
-    this.ensureEndTimeAfterStartTime(startTime, endTime);
-    await this.ensureTaskExists(user._id.toString(), taskId);
+    ensureEndTimeAfterStartTime(startTime, endTime);
+
+    await getDocumentOrFail(
+      this.taskModel,
+      { _id: new Types.ObjectId(taskId), userId: user._id },
+      'The specified task does not exist',
+    );
+
     await this.ensureNoOverlappingTimeBlock(
       user._id.toString(),
       startTime,
@@ -68,7 +72,11 @@ export class TimeBlockService {
   }
 
   async findOne(user: User, id: string) {
-    const timeBlock = await this.getTimeBlockOrFail(user, id);
+    const timeBlock = await getDocumentOrFail(
+      this.timeBlockModel,
+      { _id: new Types.ObjectId(id), userId: user._id },
+      'Time block not found',
+    );
 
     return {
       success: true,
@@ -84,15 +92,24 @@ export class TimeBlockService {
       taskId,
     } = updateTimeBlockDto;
 
-    const timeBlock = await this.getTimeBlockOrFail(user, id);
+    const timeBlock = await getDocumentOrFail(
+      this.timeBlockModel,
+      { _id: new Types.ObjectId(id), userId: user._id },
+      'Time block not found',
+    );
 
     const startTime = newStartTime || timeBlock.startTime;
     const endTime = newEndTime || timeBlock.endTime;
 
     if ((newEndTime || newStartTime) && endTime)
-      this.ensureEndTimeAfterStartTime(startTime, endTime);
+      ensureEndTimeAfterStartTime(startTime, endTime);
 
-    if (taskId) await this.ensureTaskExists(user._id.toString(), taskId);
+    if (taskId)
+      await getDocumentOrFail(
+        this.taskModel,
+        { _id: new Types.ObjectId(taskId), userId: user._id },
+        'The specified task does not exist',
+      );
 
     for (const [key, value] of Object.entries(updateTimeBlockDto)) {
       if (value) {
@@ -111,7 +128,11 @@ export class TimeBlockService {
   }
 
   async remove(user: User, id: string) {
-    const timeBlock = await this.getTimeBlockOrFail(user, id);
+    const timeBlock = await getDocumentOrFail<TimeBlock>(
+      this.timeBlockModel,
+      { _id: new Types.ObjectId(id), userId: user._id },
+      'Time block not found',
+    );
 
     await timeBlock.deleteOne();
 
@@ -120,40 +141,6 @@ export class TimeBlockService {
       message: 'Time block successfully deleted',
       data: null,
     };
-  }
-
-  private async getTimeBlockOrFail(user: User, timeBlockId: string) {
-    const timeBlock = await this.timeBlockModel.findOne({
-      _id: new Types.ObjectId(timeBlockId),
-      userId: user._id,
-    });
-
-    if (!timeBlock) throw new NotFoundException('Time block not found');
-
-    return timeBlock;
-  }
-
-  private async ensureTaskExists(userId: string, taskId: string) {
-    const task = await this.taskModel.find({
-      _id: taskId,
-      userId: new Types.ObjectId(userId),
-    });
-
-    console.log({ task });
-
-    if (!task || task.length === 0)
-      throw new BadRequestException('The specified task does not exist');
-  }
-
-  private ensureEndTimeAfterStartTime(
-    startTime: string | Date,
-    endTime: string | Date,
-  ) {
-    const endTimeDate = new Date(endTime);
-    const startTimeDate = new Date(startTime);
-
-    if (endTimeDate <= startTimeDate)
-      throw new BadRequestException('endTime must be after startTime');
   }
 
   private async ensureNoOverlappingTimeBlock(

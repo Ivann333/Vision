@@ -2,15 +2,10 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
-import {
-  TimeEntry,
-  TimeEntryDocument,
-  TimeEntryModelType,
-} from './time-entry.schema';
+import { TimeEntry, TimeEntryModelType } from './time-entry.schema';
 import { User } from 'src/user/user.schema';
 import { Task, TaskModelType } from 'src/task/task.schema';
 import { CreateTimeEntryDto } from './dto/create-time-entry.dto';
@@ -20,6 +15,7 @@ import { applySort } from 'src/common/helpers/apply-sort.helper';
 import { applySelectFields } from 'src/common/helpers/apply-select-fields.helper';
 import { applyQueryFilter } from 'src/common/helpers/apply-query-filter.helper';
 import { UpdateTimeEntryDto } from './dto/update-time-entry.dto';
+import { ensureEndTimeAfterStartTime } from 'src/common/helpers/ensure-end-time-after-start-time.helper';
 
 @Injectable()
 export class TimeEntryService {
@@ -32,7 +28,7 @@ export class TimeEntryService {
     const { startTime, endTime, taskId } = createTimeEntryDto;
 
     if (endTime) {
-      this.ensureEndTimeAfterStartTime(startTime, endTime);
+      ensureEndTimeAfterStartTime(startTime, endTime);
     } else {
       const activeEntry = await this.getActiveTimeEntry(user._id.toString());
       if (activeEntry)
@@ -73,9 +69,7 @@ export class TimeEntryService {
   }
 
   async findOne(user: User, id: string) {
-    const timeEntry = await this.getTimeEntryOrFail(id);
-
-    this.ensureUserIsOwner(timeEntry, user._id.toString());
+    const timeEntry = await this.getTimeEntryOrFail(user, id);
 
     return {
       success: true,
@@ -87,14 +81,13 @@ export class TimeEntryService {
   async update(user: User, id: string, updateTimeEntryDto: UpdateTimeEntryDto) {
     const { startTime: newStartTime, endTime: newEndTime } = updateTimeEntryDto;
 
-    const timeEntry = await this.getTimeEntryOrFail(id);
-    this.ensureUserIsOwner(timeEntry, user._id.toString());
+    const timeEntry = await this.getTimeEntryOrFail(user, id);
 
     const startTime = newStartTime || timeEntry.startTime;
     const endTime = newEndTime || timeEntry.endTime;
 
     if ((newEndTime || newStartTime) && endTime)
-      this.ensureEndTimeAfterStartTime(startTime, endTime);
+      ensureEndTimeAfterStartTime(startTime, endTime);
 
     for (const [key, value] of Object.entries(updateTimeEntryDto)) {
       if (value) {
@@ -113,9 +106,7 @@ export class TimeEntryService {
   }
 
   async remove(user: User, id: string) {
-    const timeEntry = await this.getTimeEntryOrFail(id);
-
-    this.ensureUserIsOwner(timeEntry, user._id.toString());
+    const timeEntry = await this.getTimeEntryOrFail(user, id);
 
     await timeEntry.deleteOne();
 
@@ -126,30 +117,15 @@ export class TimeEntryService {
     };
   }
 
-  private ensureEndTimeAfterStartTime(
-    startTime: string | Date,
-    endTime: string | Date,
-  ) {
-    const endTimeDate = new Date(endTime);
-    const startTimeDate = new Date(startTime);
-
-    if (endTimeDate <= startTimeDate)
-      throw new BadRequestException('endTime must be after startTime');
-  }
-
-  private async getTimeEntryOrFail(timeEntryId: string) {
-    const timeEntry = await this.timeEntryModel.findById(timeEntryId);
+  private async getTimeEntryOrFail(user: User, timeEntryId: string) {
+    const timeEntry = await this.timeEntryModel.findOne({
+      _id: new Types.ObjectId(timeEntryId),
+      userId: user._id,
+    });
 
     if (!timeEntry) throw new NotFoundException('Time entry not found');
 
     return timeEntry;
-  }
-
-  private ensureUserIsOwner(timeEntry: TimeEntryDocument, userId: string) {
-    if (timeEntry.userId.toString() !== userId)
-      throw new UnauthorizedException(
-        'You do not have permission to access this resource',
-      );
   }
 
   private async getActiveTimeEntry(userId: string) {

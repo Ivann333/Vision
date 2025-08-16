@@ -2,9 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Model, Types } from 'mongoose';
 import { TaskType } from './enums/task-type.enum';
 
-export type TaskDocument = HydratedDocument<Task>;
-
-export interface TaskModelType extends Model<TaskDocument> {
+export interface TaskModelType extends Model<Task> {
   calculateEndDate(startDate: Date, type: TaskType): Date;
 }
 
@@ -63,7 +61,7 @@ TaskSchema.statics.calculateEndDate = function (
   return endDate;
 };
 
-TaskSchema.pre<TaskDocument>('save', function (next) {
+TaskSchema.pre<HydratedDocument<Task>>('save', function (next) {
   const model = this.constructor as TaskModelType;
   this.endDate = model.calculateEndDate(this.startDate, this.type);
   next();

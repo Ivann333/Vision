@@ -2,10 +2,9 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Task, TaskDocument, TaskModelType } from './task.schema';
+import { Task, TaskModelType } from './task.schema';
 import { User } from 'src/user/user.schema';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
@@ -15,6 +14,7 @@ import { FindAllTasksQueryDto } from './dto/find-all-tasks-query.dto';
 import { applySort } from 'src/common/helpers/apply-sort.helper';
 import { applySelectFields } from 'src/common/helpers/apply-select-fields.helper';
 import { applyQueryFilter } from 'src/common/helpers/apply-query-filter.helper';
+import { Types } from 'mongoose';
 
 @Injectable()
 export class TaskService {
@@ -57,8 +57,7 @@ export class TaskService {
   }
 
   async findOne(user: User, id: string) {
-    const task = await this.getTaskOrFail(id);
-    this.ensureUserIsOwner(task, user._id.toString());
+    const task = await this.getTaskOrFail(user, id);
 
     return {
       success: true,
@@ -70,8 +69,7 @@ export class TaskService {
   async update(user: User, id: string, updateTaskDto: UpdateTaskDto) {
     const { startDate, type: newType } = updateTaskDto;
 
-    const task = await this.getTaskOrFail(id);
-    this.ensureUserIsOwner(task, user._id.toString());
+    const task = await this.getTaskOrFail(user, id);
 
     if (startDate) {
       const type = newType || task.type;
@@ -96,8 +94,7 @@ export class TaskService {
   }
 
   async remove(user: User, id: string) {
-    const task = await this.getTaskOrFail(id);
-    this.ensureUserIsOwner(task, user._id.toString());
+    const task = await this.getTaskOrFail(user, id);
 
     await task.deleteOne();
 
@@ -108,15 +105,11 @@ export class TaskService {
     };
   }
 
-  private ensureUserIsOwner(task: TaskDocument, userId: string) {
-    if (task.userId.toString() !== userId)
-      throw new UnauthorizedException(
-        'You do not have permission to access this resource',
-      );
-  }
-
-  private async getTaskOrFail(taskId: string) {
-    const task = await this.taskModel.findById(taskId);
+  private async getTaskOrFail(user: User, taskId: string) {
+    const task = await this.taskModel.findOne({
+      userId: user._id,
+      _id: new Types.ObjectId(taskId),
+    });
 
     if (!task) throw new NotFoundException('Task not found');
 
