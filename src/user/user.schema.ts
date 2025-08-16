@@ -2,9 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Model, Types } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 
-type UserDocument = HydratedDocument<User>;
-
-export interface UserModelType extends Model<UserDocument> {
+export interface UserModelType extends Model<User> {
   validatePassword(
     plainPassword: string,
     hashedPassword: string,
@@ -28,7 +26,7 @@ export class User {
 
 const UserSchema = SchemaFactory.createForClass(User);
 
-UserSchema.pre<UserDocument>('save', async function (next) {
+UserSchema.pre<HydratedDocument<User>>('save', async function (next) {
   if (!this.isModified('password')) return next();
 
   const hashedPassword = await bcrypt.hash(this.password, 10);
