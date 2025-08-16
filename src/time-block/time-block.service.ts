@@ -6,10 +6,12 @@ import { Task, TaskModelType } from 'src/task/task.schema';
 import { CreateTimeBlockDto } from './dto/create-time-block.dto';
 import { User } from 'src/user/user.schema';
 import { FindAllTimeBlocksQueryDto } from './dto/find-all-time-blocks-query.dto';
-import { applyPagination } from 'src/common/helpers/apply-pagination.helper';
-import { applySort } from 'src/common/helpers/apply-sort.helper';
-import { applySelectFields } from 'src/common/helpers/apply-select-fields.helper';
-import { applyQueryFilter } from 'src/common/helpers/apply-query-filter.helper';
+import {
+  applyPagination,
+  applySort,
+  applySelectFields,
+  applyQueryFilter,
+} from 'src/common/helpers/query-helpers';
 import { UpdateTimeBlockDto } from './dto/update-time-block.dto';
 import { ensureEndTimeAfterStartTime } from 'src/common/helpers/ensure-end-time-after-start-time.helper';
 import { getDocumentOrFail } from 'src/common/helpers/get-document-or-fail.helper';

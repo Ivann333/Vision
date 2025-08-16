@@ -5,11 +5,14 @@ import { User } from 'src/user/user.schema';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { TaskType } from './enums/task-type.enum';
-import { applyPagination } from 'src/common/helpers/apply-pagination.helper';
+import {
+  applyPagination,
+  applySort,
+  applySelectFields,
+  applyQueryFilter,
+} from 'src/common/helpers/query-helpers';
 import { FindAllTasksQueryDto } from './dto/find-all-tasks-query.dto';
-import { applySort } from 'src/common/helpers/apply-sort.helper';
-import { applySelectFields } from 'src/common/helpers/apply-select-fields.helper';
-import { applyQueryFilter } from 'src/common/helpers/apply-query-filter.helper';
+
 import { Types } from 'mongoose';
 import { getDocumentOrFail } from 'src/common/helpers/get-document-or-fail.helper';
 
