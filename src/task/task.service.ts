@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Task, TaskModelType } from './task.schema';
 import { User } from 'src/user/user.schema';
@@ -15,6 +11,7 @@ import { applySort } from 'src/common/helpers/apply-sort.helper';
 import { applySelectFields } from 'src/common/helpers/apply-select-fields.helper';
 import { applyQueryFilter } from 'src/common/helpers/apply-query-filter.helper';
 import { Types } from 'mongoose';
+import { getDocumentOrFail } from 'src/common/helpers/get-document-or-fail.helper';
 
 @Injectable()
 export class TaskService {
@@ -57,7 +54,11 @@ export class TaskService {
   }
 
   async findOne(user: User, id: string) {
-    const task = await this.getTaskOrFail(user, id);
+    const task = await getDocumentOrFail(
+      this.taskModel,
+      { userId: user._id, _id: new Types.ObjectId(id) },
+      'Task not found',
+    );
 
     return {
       success: true,
@@ -69,7 +70,11 @@ export class TaskService {
   async update(user: User, id: string, updateTaskDto: UpdateTaskDto) {
     const { startDate, type: newType } = updateTaskDto;
 
-    const task = await this.getTaskOrFail(user, id);
+    const task = await getDocumentOrFail(
+      this.taskModel,
+      { userId: user._id, _id: new Types.ObjectId(id) },
+      'Task not found',
+    );
 
     if (startDate) {
       const type = newType || task.type;
@@ -94,7 +99,11 @@ export class TaskService {
   }
 
   async remove(user: User, id: string) {
-    const task = await this.getTaskOrFail(user, id);
+    const task = await getDocumentOrFail(
+      this.taskModel,
+      { userId: user._id, _id: new Types.ObjectId(id) },
+      'Task not found',
+    );
 
     await task.deleteOne();
 
@@ -103,17 +112,6 @@ export class TaskService {
       message: 'Task successfully deleted',
       data: null,
     };
-  }
-
-  private async getTaskOrFail(user: User, taskId: string) {
-    const task = await this.taskModel.findOne({
-      userId: user._id,
-      _id: new Types.ObjectId(taskId),
-    });
-
-    if (!task) throw new NotFoundException('Task not found');
-
-    return task;
   }
 
   private async ensureMaxTasksLimit(

@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
 import { TimeEntry, TimeEntryModelType } from './time-entry.schema';
@@ -16,6 +12,7 @@ import { applySelectFields } from 'src/common/helpers/apply-select-fields.helper
 import { applyQueryFilter } from 'src/common/helpers/apply-query-filter.helper';
 import { UpdateTimeEntryDto } from './dto/update-time-entry.dto';
 import { ensureEndTimeAfterStartTime } from 'src/common/helpers/ensure-end-time-after-start-time.helper';
+import { getDocumentOrFail } from 'src/common/helpers/get-document-or-fail.helper';
 
 @Injectable()
 export class TimeEntryService {
@@ -35,7 +32,12 @@ export class TimeEntryService {
         throw new BadRequestException('You already have an active time entry');
     }
 
-    if (taskId) await this.ensureTaskExists(taskId);
+    if (taskId)
+      await getDocumentOrFail(
+        this.taskModel,
+        { _id: new Types.ObjectId(taskId), userId: user._id },
+        'The specified task does not exist',
+      );
 
     const newEntry = await this.timeEntryModel.create({
       userId: user._id,
@@ -69,7 +71,11 @@ export class TimeEntryService {
   }
 
   async findOne(user: User, id: string) {
-    const timeEntry = await this.getTimeEntryOrFail(user, id);
+    const timeEntry = await getDocumentOrFail(
+      this.timeEntryModel,
+      { _id: new Types.ObjectId(id), userId: user._id },
+      'Time entry not found',
+    );
 
     return {
       success: true,
@@ -81,7 +87,11 @@ export class TimeEntryService {
   async update(user: User, id: string, updateTimeEntryDto: UpdateTimeEntryDto) {
     const { startTime: newStartTime, endTime: newEndTime } = updateTimeEntryDto;
 
-    const timeEntry = await this.getTimeEntryOrFail(user, id);
+    const timeEntry = await getDocumentOrFail(
+      this.timeEntryModel,
+      { _id: new Types.ObjectId(id), userId: user._id },
+      'Time entry not found',
+    );
 
     const startTime = newStartTime || timeEntry.startTime;
     const endTime = newEndTime || timeEntry.endTime;
@@ -106,7 +116,11 @@ export class TimeEntryService {
   }
 
   async remove(user: User, id: string) {
-    const timeEntry = await this.getTimeEntryOrFail(user, id);
+    const timeEntry = await getDocumentOrFail(
+      this.timeEntryModel,
+      { _id: new Types.ObjectId(id), userId: user._id },
+      'Time entry not found',
+    );
 
     await timeEntry.deleteOne();
 
@@ -117,17 +131,6 @@ export class TimeEntryService {
     };
   }
 
-  private async getTimeEntryOrFail(user: User, timeEntryId: string) {
-    const timeEntry = await this.timeEntryModel.findOne({
-      _id: new Types.ObjectId(timeEntryId),
-      userId: user._id,
-    });
-
-    if (!timeEntry) throw new NotFoundException('Time entry not found');
-
-    return timeEntry;
-  }
-
   private async getActiveTimeEntry(userId: string) {
     const activeEntry = await this.timeEntryModel.findOne({
       userId: new Types.ObjectId(userId),
@@ -135,12 +138,5 @@ export class TimeEntryService {
     });
 
     return activeEntry;
-  }
-
-  private async ensureTaskExists(taskId: string) {
-    const task = await this.taskModel.findById(taskId);
-
-    if (!task)
-      throw new BadRequestException('The specified task does not exist');
   }
 }

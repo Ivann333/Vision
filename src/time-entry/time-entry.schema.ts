@@ -3,10 +3,8 @@ import { HydratedDocument, Model, Types } from 'mongoose';
 import * as dayjs from 'dayjs';
 import { formatDuration } from 'src/common/helpers/format-duration.helper';
 
-export type TimeEntryDocument = HydratedDocument<TimeEntry>;
-
 /* eslint-disable */
-export interface TimeEntryModelType extends Model<TimeEntryDocument> {}
+export interface TimeEntryModelType extends Model<TimeEntry> {}
 /* eslint-enable */
 
 @Schema({ timestamps: true, id: false })
@@ -58,12 +56,12 @@ TimeEntrySchema.virtual('formattedDuration').get(function () {
   else return null;
 });
 
-TimeEntrySchema.pre<TimeEntryDocument>('save', function (next) {
+TimeEntrySchema.pre<HydratedDocument<TimeEntry>>('save', function (next) {
   this.isActive = this.endTime ? false : true;
   next();
 });
 
-TimeEntrySchema.pre<TimeEntryDocument>('save', function (next) {
+TimeEntrySchema.pre<HydratedDocument<TimeEntry>>('save', function (next) {
   if (!this.isModified('endTime') && !this.isModified('startTime'))
     return next();
   if (this.endTime === null) return next();
