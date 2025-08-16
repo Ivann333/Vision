@@ -12,14 +12,14 @@ export class UserController {
   constructor(private authService: AuthService) {}
 
   @Post('signup')
-  async signup(@Body() signupDto: SignupDto) {
-    return await this.authService.signup(signupDto);
+  signup(@Body() signupDto: SignupDto) {
+    return this.authService.signup(signupDto);
   }
 
   @HttpCode(HttpStatus.OK)
   @Post('login')
-  async login(@Body() loginDto: LoginDto) {
-    return await this.authService.login(loginDto);
+  login(@Body() loginDto: LoginDto) {
+    return this.authService.login(loginDto);
   }
 
   @UseGuards(JwtGuard)
